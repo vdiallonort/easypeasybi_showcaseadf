@@ -1,0 +1,6 @@
+selected resource name:		FILE_LISTER
+selected resource type:		pipeline
+factory name:			easypeasybiadf
+factory location:		switzerlandnorth
+subscription id:		6fa11037-363b-4ff4-a5a2-f4e93efa527c
+time of download (UTC):		Thu, 03 Feb 2022 13:12:14 GMT

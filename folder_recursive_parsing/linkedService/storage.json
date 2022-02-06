@@ -1,0 +1,10 @@
+{
+    "name": "storage",
+    "properties": {
+        "annotations": [],
+        "type": "AzureBlobFS",
+        "typeProperties": {
+            "url": "https://easypeasybidev.dfs.core.windows.net"
+        }
+    }
+}

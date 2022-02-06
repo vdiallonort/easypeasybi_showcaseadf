@@ -1,0 +1,22 @@
+{
+    "now": "2022-02-03T13:12:14.387Z",
+    "perfNow": 10570008.200000003,
+    "diagnosticCorrelation": "5f1baa36-c77e-45e6-8009-b1bf5900deff",
+    "source": "DownloadSupportFiles",
+    "environment": {
+        "productName": "adf",
+        "buildVersion": "1.0.012822.12",
+        "environmentType": 3,
+        "resourceName": "easypeasybiadf",
+        "resourceRegion": "switzerlandnorth",
+        "resourceGroup": "eaysypeasybi-showcase",
+        "subscriptionId": "6fa11037-363b-4ff4-a5a2-f4e93efa527c",
+        "sessionId": "9zzLa",
+        "operationId": "I7UYs",
+        "gitType": "VSTS"
+    },
+    "additionalInfo": {
+        "selectedResource": "FILE_LISTER",
+        "selectedResourceType": "pipeline"
+    }
+}

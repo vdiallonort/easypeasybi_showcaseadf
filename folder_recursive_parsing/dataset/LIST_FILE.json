@@ -1,0 +1,35 @@
+{
+    "name": "LIST_FILE",
+    "properties": {
+        "linkedServiceName": {
+            "referenceName": "storage",
+            "type": "LinkedServiceReference"
+        },
+        "parameters": {
+            "CONTAINER": {
+                "type": "string",
+                "defaultValue": "landing"
+            },
+            "FOLDER_PATH": {
+                "type": "string",
+                "defaultValue": "adventureworks"
+            }
+        },
+        "annotations": [],
+        "type": "Json",
+        "typeProperties": {
+            "location": {
+                "type": "AzureBlobFSLocation",
+                "folderPath": {
+                    "value": "@dataset().FOLDER_PATH",
+                    "type": "Expression"
+                },
+                "fileSystem": {
+                    "value": "@dataset().CONTAINER",
+                    "type": "Expression"
+                }
+            }
+        },
+        "schema": {}
+    }
+}

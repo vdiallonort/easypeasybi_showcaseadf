@@ -1,0 +1,380 @@
+{
+    "name": "FILE_LISTER",
+    "properties": {
+        "activities": [
+            {
+                "name": "2- Until queue is empty",
+                "description": "",
+                "type": "Until",
+                "dependsOn": [
+                    {
+                        "activity": "1-Set initial path",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [
+                    {
+                        "name": "FOLDER_PARSED",
+                        "value": "@variables('CurrentFolderPatch')"
+                    }
+                ],
+                "typeProperties": {
+                    "expression": {
+                        "value": "@empty(variables('Queue'))",
+                        "type": "Expression"
+                    },
+                    "activities": [
+                        {
+                            "name": "2_9 - Add path to file and load in _tmpList",
+                            "description": "Add the current path to the file property.This will be used to loop through sub-folder.",
+                            "type": "SetVariable",
+                            "dependsOn": [
+                                {
+                                    "activity": "2_8 - Union filter get meta plus _ListFile",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "variableName": "_tmpList",
+                                "value": {
+                                    "value": "@json(\n    replace(string(\n            variables('_tmpQueue')\n            ),\n        '\"name\":\"',\n        concat('\"name\":\"',variables('CurrentFolderPatch'),'/')\n    )\n)",
+                                    "type": "Expression"
+                                }
+                            }
+                        },
+                        {
+                            "name": "2_6 - Filter only files using -tmpQUeue as source",
+                            "description": "Filter file using the \"type\" property.",
+                            "type": "Filter",
+                            "dependsOn": [
+                                {
+                                    "activity": "2_5 - Store outpout of meta in _tmpQueue",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "items": {
+                                    "value": "@variables('_tmpQueue')",
+                                    "type": "Expression"
+                                },
+                                "condition": {
+                                    "value": "@equals(item().type,'File')",
+                                    "type": "Expression"
+                                }
+                            }
+                        },
+                        {
+                            "name": "2_7 - Set _List files with value of ListFiles",
+                            "description": "Self-referencing variable is not possible yet therefore it required to store ListFiles inside _ListFiles.",
+                            "type": "SetVariable",
+                            "dependsOn": [
+                                {
+                                    "activity": "2_6 - Filter only files using -tmpQUeue as source",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "variableName": "_ListFiles",
+                                "value": {
+                                    "value": "@variables('ListFiles')",
+                                    "type": "Expression"
+                                }
+                            }
+                        },
+                        {
+                            "name": "2_8 - Union filter get meta plus _ListFile",
+                            "description": "Add new files to ListFIles using _ListFiles",
+                            "type": "SetVariable",
+                            "dependsOn": [
+                                {
+                                    "activity": "2_7 - Set _List files with value of ListFiles",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "variableName": "ListFiles",
+                                "value": {
+                                    "value": "@union(\njson(replace(string(activity('2_6 - Filter only files using -tmpQUeue as source').output.Value),\n        '\"name\":',\n        concat('\"path\":\"',variables('CurrentFolderPatch'),'\",\"name\":')\n        )),\nvariables('_ListFiles'))",
+                                    "type": "Expression"
+                                }
+                            }
+                        },
+                        {
+                            "name": "2_10 - FIlter folder",
+                            "description": "Filter folder only using the type property.",
+                            "type": "Filter",
+                            "dependsOn": [
+                                {
+                                    "activity": "2_9 - Add path to file and load in _tmpList",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "items": {
+                                    "value": "@variables('_tmpList')",
+                                    "type": "Expression"
+                                },
+                                "condition": {
+                                    "value": "@equals(item().type,'Folder')",
+                                    "type": "Expression"
+                                }
+                            }
+                        },
+                        {
+                            "name": "2_11 - Set _temp Queue with value of Queue",
+                            "description": "Self-referencing variable is not possible yet therefore it required to store Queue inside Queue in order to add list of new folder inside Queue.",
+                            "type": "SetVariable",
+                            "dependsOn": [
+                                {
+                                    "activity": "2_10 - FIlter folder",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "variableName": "_tmpQueue",
+                                "value": {
+                                    "value": "@variables('Queue')",
+                                    "type": "Expression"
+                                }
+                            }
+                        },
+                        {
+                            "name": "2_12 - Test if list subfolder is empty",
+                            "description": "Test is there is new subfolder inside the current folder.",
+                            "type": "IfCondition",
+                            "dependsOn": [
+                                {
+                                    "activity": "2_11 - Set _temp Queue with value of Queue",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "expression": {
+                                    "value": "@empty(activity('2_10 - FIlter folder').output.Value)",
+                                    "type": "Expression"
+                                },
+                                "ifFalseActivities": [
+                                    {
+                                        "name": "2_8_1 With subfolder",
+                                        "description": "In this case the current folder have sub-folder so we need to add them to the list of subfolder to parse in the Queue.",
+                                        "type": "SetVariable",
+                                        "dependsOn": [],
+                                        "userProperties": [],
+                                        "typeProperties": {
+                                            "variableName": "Queue",
+                                            "value": {
+                                                "value": "@if(pipeline().parameters.SUBFOLDER_SEARCH,union(\n    activity('2_10 - FIlter folder').output.Value,\n    variables('_tmpQueue')\n    ),json(''))",
+                                                "type": "Expression"
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "2_1 - Set Current Folder Path",
+                            "type": "SetVariable",
+                            "dependsOn": [],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "variableName": "CurrentFolderPatch",
+                                "value": {
+                                    "value": "@first(variables('Queue')).name",
+                                    "type": "Expression"
+                                }
+                            }
+                        },
+                        {
+                            "name": "2_4 - Get Metadata",
+                            "type": "GetMetadata",
+                            "dependsOn": [
+                                {
+                                    "activity": "2_3-Set Queue",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "policy": {
+                                "timeout": "7.00:00:00",
+                                "retry": 0,
+                                "retryIntervalInSeconds": 30,
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "userProperties": [],
+                            "typeProperties": {
+                                "dataset": {
+                                    "referenceName": "LIST_FILE",
+                                    "type": "DatasetReference",
+                                    "parameters": {
+                                        "CONTAINER": {
+                                            "value": "@pipeline().globalParameters.CONTAINER",
+                                            "type": "Expression"
+                                        },
+                                        "FOLDER_PATH": {
+                                            "value": "@variables('CurrentFolderPatch')",
+                                            "type": "Expression"
+                                        }
+                                    }
+                                },
+                                "fieldList": [
+                                    "childItems"
+                                ],
+                                "storeSettings": {
+                                    "type": "AzureBlobFSReadSettings",
+                                    "recursive": true,
+                                    "enablePartitionDiscovery": false
+                                },
+                                "formatSettings": {
+                                    "type": "JsonReadSettings"
+                                }
+                            }
+                        },
+                        {
+                            "name": "2_5 - Store outpout of meta in _tmpQueue",
+                            "type": "SetVariable",
+                            "dependsOn": [
+                                {
+                                    "activity": "2_4 - Get Metadata",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "variableName": "_tmpQueue",
+                                "value": {
+                                    "value": "@activity('2_4 - Get Metadata').output.childItems",
+                                    "type": "Expression"
+                                }
+                            }
+                        },
+                        {
+                            "name": "2_2 - Set _tmpQUeue with Queue",
+                            "type": "SetVariable",
+                            "dependsOn": [
+                                {
+                                    "activity": "2_1 - Set Current Folder Path",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "variableName": "_tmpQueue",
+                                "value": {
+                                    "value": "@variables('Queue')",
+                                    "type": "Expression"
+                                }
+                            }
+                        },
+                        {
+                            "name": "2_3-Set Queue",
+                            "type": "SetVariable",
+                            "dependsOn": [
+                                {
+                                    "activity": "2_2 - Set _tmpQUeue with Queue",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "variableName": "Queue",
+                                "value": {
+                                    "value": "@if(greater(length(variables('_tmpQueue')),1),\njson(\n        replace( \n            string(variables('_tmpQueue')),\n            concat(string(first(variables('_tmpQueue'))),','),\n            ''\n            )\n        ),\n        json(\n        replace( \n            string(variables('_tmpQueue')),\n            string(first(variables('_tmpQueue'))),\n            ''\n            )\n        )\n        )\n    \n",
+                                    "type": "Expression"
+                                }
+                            }
+                        }
+                    ],
+                    "timeout": "0.00:6:30"
+                }
+            },
+            {
+                "name": "1-Set initial path",
+                "type": "SetVariable",
+                "dependsOn": [],
+                "userProperties": [],
+                "typeProperties": {
+                    "variableName": "Queue",
+                    "value": {
+                        "value": "@json(concat('[{\"name\":\"/',pipeline().parameters.INITIAL_PATH,'\"}]'))",
+                        "type": "Expression"
+                    }
+                }
+            }
+        ],
+        "parameters": {
+            "INITIAL_PATH": {
+                "type": "string",
+                "defaultValue": "dim"
+            },
+            "SUBFOLDER_SEARCH": {
+                "type": "bool",
+                "defaultValue": true
+            },
+            "CONTAINER": {
+                "type": "string",
+                "defaultValue": "presentationlayer"
+            }
+        },
+        "variables": {
+            "Queue": {
+                "type": "Array",
+                "defaultValue": [
+                    {
+                        "name": "inutile",
+                        "type": "inutile"
+                    }
+                ]
+            },
+            "CurrentFolderPatch": {
+                "type": "String"
+            },
+            "_tmpQueue": {
+                "type": "Array"
+            },
+            "ListFiles": {
+                "type": "Array"
+            },
+            "_ListFiles": {
+                "type": "Array"
+            },
+            "_tmpList": {
+                "type": "Array"
+            }
+        },
+        "folder": {
+            "name": "DATA"
+        },
+        "annotations": []
+    }
+}
