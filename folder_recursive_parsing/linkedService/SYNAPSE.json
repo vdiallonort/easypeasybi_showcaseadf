@@ -1,0 +1,10 @@
+{
+	"name": "SYNAPSE",
+	"properties": {
+		"annotations": [],
+		"type": "AzureSqlDW",
+		"typeProperties": {
+			"connectionString": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=easypeasybisynapsedev.sql.azuresynapse.net;Initial Catalog=sqldev"
+		}
+	}
+}

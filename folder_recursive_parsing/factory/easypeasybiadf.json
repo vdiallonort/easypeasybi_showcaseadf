@@ -1,0 +1,21 @@
+{
+	"name": "easypeasybiadf",
+	"properties": {
+		"globalParameters": {
+			"CONTAINER": {
+				"type": "string",
+				"value": "presentationlayer"
+			},
+			"DATALAKE": {
+				"type": "string",
+				"value": "easypeasybidev"
+			}
+		}
+	},
+	"location": "switzerlandnorth",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "2361eca2-bae6-470e-a789-d44c9d62b91c",
+		"tenantId": "0e3603bd-2f0b-43e2-b9b5-5d456791cf33"
+	}
+}
